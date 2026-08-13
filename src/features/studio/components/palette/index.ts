@@ -1,3 +1,0 @@
-export {
-  StudioDraggableBlock,
-} from './StudioDraggableBlock'

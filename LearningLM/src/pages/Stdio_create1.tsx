@@ -60,9 +60,9 @@ import { validateStudioWorkflow } from '../features/studio/validation/validateSt
 import { useRef } from 'react'
 
 import {
-  FlowPreviewResponse,
+  getFlow,
   saveFlow,
-  type FlowSavePayload,
+  type FlowUpdateRequest,
 } from './api/StudioApi'
 
 type ValidationCheckStatus =
@@ -727,31 +727,56 @@ export function Stdio_create1() {
     })
   }
 
-  const handleOpenPreview = async () => {
-    try{
-      const flowId=8;
-      // TODO: 로그인 API 머지 후 실제 accessToken으로 교체
-      const accessToken = "여기에_나중에_실제_accessToken";
-      const data=await FlowPreviewResponse(
+const handleOpenPreview = async () => {
+  const flowId =
+    locationState?.workflowId ??
+    (workflowId
+      ? Number(workflowId)
+      : undefined)
+
+  if (!flowId) {
+    console.error(
+      '미리보기에 사용할 flowId가 없습니다.',
+    )
+    return
+  }
+
+  const accessToken =
+    localStorage.getItem(
+      'accessToken',
+    ) ?? undefined
+
+  try {
+    const data =
+      await getFlow(
         flowId,
         accessToken,
-      );
-      console.log("불러온 Flow:", data);
-      navigate(
-        `/studio/create?mode=copied&flowId=${flowId}`,
+      )
+
+    console.log(
+      '불러온 Flow:',
+      data,
+    )
+
+    navigate(
+      `/studio/create?mode=copied&flowId=${flowId}`,
       {
         state: {
-          mode: "preview",
-          flowId: flowId,
-          flowData: data,
+          mode: 'preview',
+          flowId,
+          flowData:
+            data.result,
         },
       },
-    );
-    } catch (error) {
-    console.error("Flow 불러오기 실패:", error);
+    )
+  } catch (error) {
+    console.error(
+      'Flow 불러오기 실패:',
+      error,
+    )
   }
-  }
-const buildFlowSavePayload = (): FlowSavePayload => ({
+}
+const buildFlowSavePayload = (): FlowUpdateRequest => ({
   title: '새 흐름',
   summary: '자동 생성된 요약',
   purpose: '사용자 정의 흐름',
